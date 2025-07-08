@@ -39,10 +39,21 @@ import {
   Legend,
   BarElement,
   CategoryScale,
-  LinearScale
+  LinearScale,
+  LineElement,
+  PointElement
 } from 'chart.js'
 
-ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
+ChartJS.register(
+  Title,
+  Tooltip,
+  Legend,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  LineElement,
+  PointElement
+)
 
 const chartData = ref<any>(null)
 const chartOptions = {
@@ -52,7 +63,8 @@ const chartOptions = {
     title: { display: false }
   },
   scales: {
-    y: { beginAtZero: true }
+    x: { stacked: true },
+    y: { beginAtZero: true, stacked: true }
   }
 }
 const labels = ref<string[]>([])
@@ -63,14 +75,40 @@ onMounted(async () => {
   const res = await fetch('/api/brand-ads.json')
   const data = await res.json()
   labels.value = data.labels
-  totals.value = data.totals
   tableRows.value = data.datasets.map((ds: any) => ({
     label: ds.label,
     data: ds.data
   }))
-  chartData.value = {
-    labels: data.labels,
-    datasets: data.datasets
+  // Calculate totals for each month
+  const monthCount = data.labels.length
+  totals.value = Array.from({ length: monthCount }, (_, i) =>
+    data.datasets.reduce((sum: number, ds: any) => sum + (ds.data[i] || 0), 0)
+  )
+  // Add line dataset for totals
+  const lineDataset = {
+    type: 'line',
+    label: 'تعداد سازه کل',
+    data: totals.value,
+    borderColor: '#FF6600',
+    backgroundColor: 'rgba(255,102,0,0.2)',
+    fill: false,
+    tension: 0.2,
+    order: 1,
+    pointRadius: 3,
+    pointBackgroundColor: '#551111'
   }
+chartData.value = {
+    labels: data.labels,
+    datasets: [
+        ...data.datasets.map((ds: any) => ({
+            ...ds,
+            type: 'bar',
+            order: 2,
+            barPercentage: 0.5, // Set bar width to 50%
+            categoryPercentage: 0.5 // Set category width to 50%
+        })),
+        lineDataset
+    ]
+}
 })
 </script>
