@@ -1,0 +1,36 @@
+{
+    "labels": [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June"
+    ],
+    "datasets": [
+        {
+            "label": "Users",
+            "backgroundColor": "#42A5F5",
+            "data": [
+                120,
+                150,
+                180,
+                90,
+                200,
+                170
+            ]
+        },
+        {
+            "label": "Guests",
+            "backgroundColor": "#FFA726",
+            "data": [
+                80,
+                100,
+                140,
+                60,
+                120,
+                110
+            ]
+        }
+    ]
+}
