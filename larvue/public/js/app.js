@@ -2534,12 +2534,15 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
   methods: {
     generatePDF: function generatePDF() {
       return _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
-        var pdf, pageElements, i, pageEl, canvas, imgData, imgProps, pdfWidth, pdfHeight;
+        var pdf, pageElements, pdfWidth, pdfHeight, i, pageEl, canvas, imgData, footerText, fontSize, textWidth, x, y;
         return _regenerator().w(function (_context) {
           while (1) switch (_context.n) {
             case 0:
-              pdf = new jspdf__WEBPACK_IMPORTED_MODULE_0__["default"]('p', 'mm', 'a4');
+              // Landscape mode
+              pdf = new jspdf__WEBPACK_IMPORTED_MODULE_0__["default"]('l', 'mm', 'a4');
               pageElements = document.querySelectorAll('.page');
+              pdfWidth = pdf.internal.pageSize.getWidth();
+              pdfHeight = pdf.internal.pageSize.getHeight();
               i = 0;
             case 1:
               if (!(i < pageElements.length)) {
@@ -2550,16 +2553,24 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
               _context.n = 2;
               return html2canvas__WEBPACK_IMPORTED_MODULE_1___default()(pageEl, {
                 scale: 2,
-                useCORS: true
+                useCORS: true,
+                width: pageEl.offsetWidth,
+                height: pageEl.offsetHeight
               });
             case 2:
               canvas = _context.v;
-              imgData = canvas.toDataURL('image/png');
-              imgProps = pdf.getImageProperties(imgData);
-              pdfWidth = pdf.internal.pageSize.getWidth();
-              pdfHeight = imgProps.height * pdfWidth / imgProps.width;
+              imgData = canvas.toDataURL('image/png'); // Fit image to PDF page size
               if (i > 0) pdf.addPage();
-              pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+              pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight - 15);
+
+              // Add footer 'OHM' at the bottom center
+              footerText = 'OHM';
+              fontSize = 12;
+              pdf.setFontSize(fontSize);
+              textWidth = pdf.getTextWidth(footerText);
+              x = (pdfWidth - textWidth) / 2;
+              y = pdfHeight - 8; // 8mm from bottom
+              pdf.text(footerText, x, y);
             case 3:
               i++;
               _context.n = 1;

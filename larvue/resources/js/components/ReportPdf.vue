@@ -67,24 +67,36 @@ export default {
   },
   methods: {
     async generatePDF() {
-      const pdf = new jsPDF('p', 'mm', 'a4')
+      // Landscape mode
+      const pdf = new jsPDF('l', 'mm', 'a4')
       const pageElements = document.querySelectorAll('.page')
+
+      const pdfWidth = pdf.internal.pageSize.getWidth()
+      const pdfHeight = pdf.internal.pageSize.getHeight()
 
       for (let i = 0; i < pageElements.length; i++) {
         const pageEl = pageElements[i]
 
         const canvas = await html2canvas(pageEl, {
           scale: 2,
-          useCORS: true
+          useCORS: true,
+          width: pageEl.offsetWidth,
+          height: pageEl.offsetHeight
         })
 
         const imgData = canvas.toDataURL('image/png')
-        const imgProps = pdf.getImageProperties(imgData)
-        const pdfWidth = pdf.internal.pageSize.getWidth()
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width
-
+        // Fit image to PDF page size
         if (i > 0) pdf.addPage()
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight - 15)
+
+        // Add footer 'OHM' at the bottom center
+        const footerText = 'OHM'
+        const fontSize = 12
+        pdf.setFontSize(fontSize)
+        const textWidth = pdf.getTextWidth(footerText)
+        const x = (pdfWidth - textWidth) / 2
+        const y = pdfHeight - 8 // 8mm from bottom
+        pdf.text(footerText, x, y)
       }
 
       pdf.save('report.pdf')

@@ -11,8 +11,21 @@
 
 </head>
 <body>
-    <div id="app" class="container">
-        <report-pdf></report-pdf>
+    <div class="container py-5">
+      <div class="row justify-content-center">
+        <div class="col-lg-10">
+          <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white text-center">
+              <h2 class="mb-0">گزارش تبلیغات برندها</h2>
+            </div>
+            <div class="card-body">
+              <div id="app">
+                <report-pdf></report-pdf>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
   
