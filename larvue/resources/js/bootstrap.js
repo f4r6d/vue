@@ -1,14 +1,18 @@
 window._ = require('lodash');
 
-/**
- * We'll load the axios HTTP library which allows us to easily issue requests
- * to our Laravel back-end. This library automatically handles sending the
- * CSRF token as a header based on the value of the "XSRF" token cookie.
- */
-
 window.axios = require('axios');
 
+// تنظیم هدر درخواست AJAX
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+
+// اگر CSRF Token در meta موجود بود، به عنوان هدر ست کن
+const token = document.querySelector('meta[name="csrf-token"]');
+if (token) {
+    window.axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
+} else {
+    console.error('CSRF token not found: Ensure <meta name="csrf-token" content="..."> exists in your HTML.');
+}
+
 
 /**
  * Echo exposes an expressive API for subscribing to channels and listening

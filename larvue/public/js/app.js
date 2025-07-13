@@ -2605,64 +2605,31 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
     },
     sendToBackend: function sendToBackend() {
       var _this = this;
-      // تابع async رو اینجا تعریف می‌کنیم و همونجا صدا می‌زنیم
-      var run = /*#__PURE__*/function () {
-        var _ref = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2() {
-          var payload, res, result;
-          return _regenerator().w(function (_context2) {
-            while (1) switch (_context2.n) {
-              case 0:
-                payload = {
-                  headers: ['برند', '2022', '2023', '2024'],
-                  rows: [['برند A', 100, 150, 120], ['برند B', 80, 110, 95]]
-                };
-                _context2.n = 1;
-                return fetch('/generate-pdf', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json'
-                  },
-                  body: JSON.stringify(payload)
-                });
-              case 1:
-                res = _context2.v;
-                _context2.n = 2;
-                return res.json();
-              case 2:
-                result = _context2.v;
-                _this.fileKey = result.file;
-                _this.pollForDownload();
-              case 3:
-                return _context2.a(2);
-            }
-          }, _callee2);
-        }));
-        return function run() {
-          return _ref.apply(this, arguments);
-        };
-      }();
-      run();
+      var payload = {
+        headers: ['برند', '2022', '2023', '2024'],
+        rows: [['برند A', 100, 150, 120], ['برند B', 80, 110, 95]]
+      };
+      axios.post('/generate-pdf', payload).then(function (response) {
+        _this.fileKey = response.data.file;
+        _this.pollForDownload();
+      })["catch"](function (error) {
+        console.error('خطا در ارسال به بک‌اند:', error);
+      });
     },
     pollForDownload: function pollForDownload() {
       var _this2 = this;
-      var interval = setInterval(/*#__PURE__*/_asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3() {
-        var res;
-        return _regenerator().w(function (_context3) {
-          while (1) switch (_context3.n) {
-            case 0:
-              _context3.n = 1;
-              return fetch("/download-pdf/".concat(_this2.fileKey));
-            case 1:
-              res = _context3.v;
-              if (res.status === 200) {
-                clearInterval(interval);
-                _this2.downloadUrl = "/download-pdf/".concat(_this2.fileKey);
-              }
-            case 2:
-              return _context3.a(2);
+      var interval = setInterval(function () {
+        axios.get("/download-pdf/".concat(_this2.fileKey), {
+          responseType: 'blob'
+        }).then(function (res) {
+          if (res.status === 200) {
+            clearInterval(interval);
+            _this2.downloadUrl = "/download-pdf/".concat(_this2.fileKey);
           }
-        }, _callee3);
-      })), 3000);
+        })["catch"](function () {
+          // هنوز آماده نشده، صبر می‌کنیم
+        });
+      }, 3000);
     }
   }
 });
@@ -82281,15 +82248,18 @@ new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
 
 window._ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
-
-/**
- * We'll load the axios HTTP library which allows us to easily issue requests
- * to our Laravel back-end. This library automatically handles sending the
- * CSRF token as a header based on the value of the "XSRF" token cookie.
- */
-
 window.axios = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
+
+// تنظیم هدر درخواست AJAX
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+
+// اگر CSRF Token در meta موجود بود، به عنوان هدر ست کن
+var token = document.querySelector('meta[name="csrf-token"]');
+if (token) {
+  window.axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
+} else {
+  console.error('CSRF token not found: Ensure <meta name="csrf-token" content="..."> exists in your HTML.');
+}
 
 /**
  * Echo exposes an expressive API for subscribing to channels and listening

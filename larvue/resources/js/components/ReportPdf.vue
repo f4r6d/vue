@@ -127,40 +127,39 @@ export default {
 
 
     sendToBackend() {
-      // تابع async رو اینجا تعریف می‌کنیم و همونجا صدا می‌زنیم
-      const run = async () => {
-        const payload = {
-          headers: ['برند', '2022', '2023', '2024'],
-          rows: [
-            ['برند A', 100, 150, 120],
-            ['برند B', 80, 110, 95]
-          ]
-        }
-
-        const res = await fetch('/generate-pdf', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        })
-
-        const result = await res.json()
-        this.fileKey = result.file
-
-        this.pollForDownload()
+      const payload = {
+        headers: ['برند', '2022', '2023', '2024'],
+        rows: [
+          ['برند A', 100, 150, 120],
+          ['برند B', 80, 110, 95]
+        ]
       }
 
-      run()
+      axios.post('/generate-pdf', payload)
+        .then(response => {
+          this.fileKey = response.data.file
+          this.pollForDownload()
+        })
+        .catch(error => {
+          console.error('خطا در ارسال به بک‌اند:', error)
+        })
     },
 
     pollForDownload() {
-      const interval = setInterval(async () => {
-        const res = await fetch(`/download-pdf/${this.fileKey}`)
-        if (res.status === 200) {
-          clearInterval(interval)
-          this.downloadUrl = `/download-pdf/${this.fileKey}`
-        }
+      const interval = setInterval(() => {
+        axios.get(`/download-pdf/${this.fileKey}`, { responseType: 'blob' })
+          .then(res => {
+            if (res.status === 200) {
+              clearInterval(interval)
+              this.downloadUrl = `/download-pdf/${this.fileKey}`
+            }
+          })
+          .catch(() => {
+            // هنوز آماده نشده، صبر می‌کنیم
+          })
       }, 3000)
     }
+
 
   }
 }
