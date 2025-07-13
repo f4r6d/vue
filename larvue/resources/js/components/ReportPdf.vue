@@ -1,5 +1,19 @@
 <template>
+
   <div>
+
+
+    <div>
+      <button @click="sendToBackend" class="btn btn-success mt-3">
+        تولید PDF در پس‌زمینه
+      </button>
+      <div v-if="downloadUrl">
+        <a :href="downloadUrl" class="btn btn-outline-primary mt-2" target="_blank">
+          دانلود PDF آماده‌شده
+        </a>
+      </div>
+    </div>
+
     <button @click="generatePDF" class="btn btn-primary mt-3">
       ذخیره به عنوان PDF
     </button>
@@ -65,6 +79,15 @@ export default {
     ApiChart,
     BrandAdsChartTable
   },
+
+
+  data() {
+    return {
+      downloadUrl: null,
+      fileKey: null,
+    }
+  },
+
   methods: {
     async generatePDF() {
       // Landscape mode
@@ -100,7 +123,45 @@ export default {
       }
 
       pdf.save('report.pdf')
+    },
+
+
+    sendToBackend() {
+      // تابع async رو اینجا تعریف می‌کنیم و همونجا صدا می‌زنیم
+      const run = async () => {
+        const payload = {
+          headers: ['برند', '2022', '2023', '2024'],
+          rows: [
+            ['برند A', 100, 150, 120],
+            ['برند B', 80, 110, 95]
+          ]
+        }
+
+        const res = await fetch('/generate-pdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+
+        const result = await res.json()
+        this.fileKey = result.file
+
+        this.pollForDownload()
+      }
+
+      run()
+    },
+
+    pollForDownload() {
+      const interval = setInterval(async () => {
+        const res = await fetch(`/download-pdf/${this.fileKey}`)
+        if (res.status === 200) {
+          clearInterval(interval)
+          this.downloadUrl = `/download-pdf/${this.fileKey}`
+        }
+      }, 3000)
     }
+
   }
 }
 </script>

@@ -2516,6 +2516,20 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 
@@ -2530,6 +2544,12 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
     BarChart: _BarChart_vue__WEBPACK_IMPORTED_MODULE_2__["default"],
     ApiChart: _ApiChart_vue__WEBPACK_IMPORTED_MODULE_3__["default"],
     BrandAdsChartTable: _BrandAdsChartTable_vue__WEBPACK_IMPORTED_MODULE_4__["default"]
+  },
+  data: function data() {
+    return {
+      downloadUrl: null,
+      fileKey: null
+    };
   },
   methods: {
     generatePDF: function generatePDF() {
@@ -2582,6 +2602,67 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
           }
         }, _callee);
       }))();
+    },
+    sendToBackend: function sendToBackend() {
+      var _this = this;
+      // تابع async رو اینجا تعریف می‌کنیم و همونجا صدا می‌زنیم
+      var run = /*#__PURE__*/function () {
+        var _ref = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2() {
+          var payload, res, result;
+          return _regenerator().w(function (_context2) {
+            while (1) switch (_context2.n) {
+              case 0:
+                payload = {
+                  headers: ['برند', '2022', '2023', '2024'],
+                  rows: [['برند A', 100, 150, 120], ['برند B', 80, 110, 95]]
+                };
+                _context2.n = 1;
+                return fetch('/generate-pdf', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify(payload)
+                });
+              case 1:
+                res = _context2.v;
+                _context2.n = 2;
+                return res.json();
+              case 2:
+                result = _context2.v;
+                _this.fileKey = result.file;
+                _this.pollForDownload();
+              case 3:
+                return _context2.a(2);
+            }
+          }, _callee2);
+        }));
+        return function run() {
+          return _ref.apply(this, arguments);
+        };
+      }();
+      run();
+    },
+    pollForDownload: function pollForDownload() {
+      var _this2 = this;
+      var interval = setInterval(/*#__PURE__*/_asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3() {
+        var res;
+        return _regenerator().w(function (_context3) {
+          while (1) switch (_context3.n) {
+            case 0:
+              _context3.n = 1;
+              return fetch("/download-pdf/".concat(_this2.fileKey));
+            case 1:
+              res = _context3.v;
+              if (res.status === 200) {
+                clearInterval(interval);
+                _this2.downloadUrl = "/download-pdf/".concat(_this2.fileKey);
+              }
+            case 2:
+              return _context3.a(2);
+          }
+        }, _callee3);
+      })), 3000);
     }
   }
 });
@@ -69967,6 +70048,30 @@ var render = function () {
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
   return _c("div", [
+    _c("div", [
+      _c(
+        "button",
+        {
+          staticClass: "btn btn-success mt-3",
+          on: { click: _vm.sendToBackend },
+        },
+        [_vm._v("\n      تولید PDF در پس‌زمینه\n    ")]
+      ),
+      _vm._v(" "),
+      _vm.downloadUrl
+        ? _c("div", [
+            _c(
+              "a",
+              {
+                staticClass: "btn btn-outline-primary mt-2",
+                attrs: { href: _vm.downloadUrl, target: "_blank" },
+              },
+              [_vm._v("\n        دانلود PDF آماده‌شده\n      ")]
+            ),
+          ])
+        : _vm._e(),
+    ]),
+    _vm._v(" "),
     _c(
       "button",
       { staticClass: "btn btn-primary mt-3", on: { click: _vm.generatePDF } },
